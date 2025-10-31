@@ -2,33 +2,39 @@
 {% block title %}1:1 NAT - Phreakwall{% endblock %}
 {% block content %}
 <div class="card">
-    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🔀 1:1 NAT Configuration</h2>
-    <p style="margin-bottom: 2rem;">Configure bidirectional one-to-one Network Address Translation (internal ↔ external)</p>
+    <h2>🔀 1:1 NAT Configuration</h2>
+    <p style="color: #9ca3af; margin-bottom: 2rem;">Configure bidirectional one-to-one Network Address Translation (internal ↔ external)</p>
 
     <div style="margin-bottom: 2rem;">
-        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Add NAT Rule</h3>
+        <h3>Add NAT Rule</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-            <input type="text" id="nat_external" placeholder="External IP" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
-            <input type="text" id="nat_internal" placeholder="Internal IP" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
-            <input type="text" id="nat_interface" placeholder="Interface" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="nat_external" placeholder="External IP">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="nat_internal" placeholder="Internal IP">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="nat_interface" placeholder="Interface">
+            </div>
             <button class="btn" onclick="addNATRule()">➕ Add NAT Rule</button>
         </div>
     </div>
 
-    <h3 style="color: #00ff9d; margin-bottom: 1rem;">NAT Rules</h3>
-    <table style="width: 100%; border-collapse: collapse; color: #e0e0e0;">
+    <h3>NAT Rules</h3>
+    <table>
         <thead>
-            <tr style="background: #1a1f3a; border-bottom: 2px solid #00ff9d;">
-                <th style="padding: 1rem; text-align: left;">External IP</th>
-                <th style="padding: 1rem; text-align: left;">Internal IP</th>
-                <th style="padding: 1rem; text-align: left;">Interface</th>
-                <th style="padding: 1rem; text-align: left;">Status</th>
-                <th style="padding: 1rem; text-align: left;">Actions</th>
+            <tr>
+                <th>External IP</th>
+                <th>Internal IP</th>
+                <th>Interface</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody id="nat-tbody">
             <tr>
-                <td colspan="5" style="padding: 2rem; text-align: center; color: #888;">No NAT rules configured</td>
+                <td colspan="5" style="padding: 2rem; text-align: center; color: #9ca3af;">No NAT rules configured</td>
             </tr>
         </tbody>
     </table>

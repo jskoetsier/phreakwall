@@ -2,34 +2,40 @@
 {% block title %}Virtual IPs - Phreakwall{% endblock %}
 {% block content %}
 <div class="card">
-    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🌐 Virtual IP Addresses</h2>
-    <p style="margin-bottom: 2rem;">Manage virtual IP addresses for network interfaces</p>
+    <h2>🌐 Virtual IP Addresses</h2>
+    <p style="color: #9ca3af; margin-bottom: 2rem;">Manage virtual IP addresses for network interfaces</p>
 
     <div style="margin-bottom: 2rem;">
-        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Add Virtual IP</h3>
+        <h3>Add Virtual IP</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-            <input type="text" id="vip_interface" placeholder="Interface (e.g., eth0)" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
-            <input type="text" id="vip_address" placeholder="IP Address" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
-            <input type="text" id="vip_netmask" placeholder="Netmask (e.g., 255.255.255.0)" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="vip_interface" placeholder="Interface (e.g., eth0)">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="vip_address" placeholder="IP Address">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="vip_netmask" placeholder="Netmask (e.g., 255.255.255.0)">
+            </div>
             <button class="btn" onclick="addVirtualIP()">➕ Add Virtual IP</button>
         </div>
     </div>
 
-    <h3 style="color: #00ff9d; margin-bottom: 1rem;">Configured Virtual IPs</h3>
+    <h3>Configured Virtual IPs</h3>
     <div id="virtualip-list">
-        <table style="width: 100%; border-collapse: collapse; color: #e0e0e0;">
+        <table>
             <thead>
-                <tr style="background: #1a1f3a; border-bottom: 2px solid #00ff9d;">
-                    <th style="padding: 1rem; text-align: left;">Interface</th>
-                    <th style="padding: 1rem; text-align: left;">IP Address</th>
-                    <th style="padding: 1rem; text-align: left;">Netmask</th>
-                    <th style="padding: 1rem; text-align: left;">Status</th>
-                    <th style="padding: 1rem; text-align: left;">Actions</th>
+                <tr>
+                    <th>Interface</th>
+                    <th>IP Address</th>
+                    <th>Netmask</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="vip-tbody">
                 <tr>
-                    <td colspan="5" style="padding: 2rem; text-align: center; color: #888;">No virtual IPs configured</td>
+                    <td colspan="5" style="padding: 2rem; text-align: center; color: #9ca3af;">No virtual IPs configured</td>
                 </tr>
             </tbody>
         </table>

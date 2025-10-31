@@ -2,16 +2,26 @@
 {% block title %}Status - Phreakwall{% endblock %}
 {% block content %}
 <div class="card">
-    <h2 style="color: #00ff9d; margin-bottom: 1rem;">📊 Firewall Status</h2>
-    <p style="margin-bottom: 2rem;">System and firewall status information</p>
+    <h2>📊 Firewall Status</h2>
+    <p style="color: #9ca3af; margin-bottom: 2rem;">Monitor firewall and system status</p>
 
-    <div style="background: #1a1f3a; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
-        <h3 style="color: #00ff9d; margin-bottom: 1rem;">System Information</h3>
-        <table style="width: 100%; color: #e0e0e0;">
-            <tr><td style="padding: 0.5rem;">Version:</td><td style="padding: 0.5rem;">{{ version }}</td></tr>
-            <tr><td style="padding: 0.5rem;">Status:</td><td style="padding: 0.5rem;"><span class="status-badge status-active">Active</span></td></tr>
-            <tr><td style="padding: 0.5rem;">Backend:</td><td style="padding: 0.5rem;">iptables</td></tr>
-        </table>
+    <div class="stat-grid">
+        <div class="stat-box">
+            <div class="value">🛡️</div>
+            <div class="label">Active & Protected</div>
+        </div>
+        <div class="stat-box">
+            <div class="value">{{ version }}</div>
+            <div class="label">Version</div>
+        </div>
+        <div class="stat-box">
+            <div class="value">24</div>
+            <div class="label">Active Rules</div>
+        </div>
+        <div class="stat-box">
+            <div class="value">8</div>
+            <div class="label">NAT Rules</div>
+        </div>
     </div>
 </div>
 {% endblock %}

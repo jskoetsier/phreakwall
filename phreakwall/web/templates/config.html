@@ -2,19 +2,27 @@
 {% block title %}Configuration - Phreakwall{% endblock %}
 {% block content %}
 <div class="card">
-    <h2 style="color: #00ff9d; margin-bottom: 1rem;">📝 Configuration Files</h2>
-    <p style="margin-bottom: 2rem;">Edit firewall configuration files</p>
+    <h2>⚙️ Configuration Files</h2>
+    <p style="color: #9ca3af; margin-bottom: 2rem;">Edit firewall configuration files in <code style="background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 4px;">{{ config_dir }}</code></p>
 
+    {% if files %}
     <ul class="file-list">
         {% for file in files %}
         <li>
             <div>
-                <strong>{{ file.name }}</strong>
-                <small style="color: #888; margin-left: 1rem;">{{ file.size }} bytes</small>
+                <strong>📄 {{ file.name }}</strong>
+                <small>{{ file.size }} bytes</small>
             </div>
-            <a href="/config/edit/{{ file.name }}" class="btn btn-secondary" style="text-decoration: none;">Edit</a>
+            <a href="/config/edit/{{ file.name }}" class="btn btn-secondary">Edit</a>
         </li>
         {% endfor %}
     </ul>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">📭</div>
+        <h3>No Configuration Files Found</h3>
+        <p>Initialize the configuration to create default files.</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

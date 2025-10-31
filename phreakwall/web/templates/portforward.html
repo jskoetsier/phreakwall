@@ -2,44 +2,54 @@
 {% block title %}Port Forward - Phreakwall{% endblock %}
 {% block content %}
 <div class="card">
-    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🔌 Port Forwarding Configuration</h2>
-    <p style="margin-bottom: 2rem;">Configure port forwarding rules (DNAT)</p>
+    <h2>➡️ Port Forwarding Configuration</h2>
+    <p style="color: #9ca3af; margin-bottom: 2rem;">Configure port forwarding rules (DNAT)</p>
 
     <div style="margin-bottom: 2rem;">
-        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Add Port Forward</h3>
+        <h3>Add Port Forward</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-            <input type="text" id="pf_protocol" placeholder="Protocol (tcp/udp)" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
-            <input type="text" id="pf_external_port" placeholder="External Port" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
-            <input type="text" id="pf_internal_ip" placeholder="Internal IP" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
-            <input type="text" id="pf_internal_port" placeholder="Internal Port" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
-            <input type="text" id="pf_interface" placeholder="Interface" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="pf_protocol" placeholder="Protocol (tcp/udp)">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="pf_external_port" placeholder="External Port">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="pf_internal_ip" placeholder="Internal IP">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="pf_internal_port" placeholder="Internal Port">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="pf_interface" placeholder="Interface">
+            </div>
             <button class="btn" onclick="addPortForward()">➕ Add Forward</button>
         </div>
     </div>
 
-    <h3 style="color: #00ff9d; margin-bottom: 1rem;">Port Forwarding Rules</h3>
-    <table style="width: 100%; border-collapse: collapse; color: #e0e0e0;">
+    <h3>Port Forwarding Rules</h3>
+    <table>
         <thead>
-            <tr style="background: #1a1f3a; border-bottom: 2px solid #00ff9d;">
-                <th style="padding: 1rem; text-align: left;">Protocol</th>
-                <th style="padding: 1rem; text-align: left;">External Port</th>
-                <th style="padding: 1rem; text-align: left;">Internal IP</th>
-                <th style="padding: 1rem; text-align: left;">Internal Port</th>
-                <th style="padding: 1rem; text-align: left;">Interface</th>
-                <th style="padding: 1rem; text-align: left;">Status</th>
-                <th style="padding: 1rem; text-align: left;">Actions</th>
+            <tr>
+                <th>Protocol</th>
+                <th>External Port</th>
+                <th>Internal IP</th>
+                <th>Internal Port</th>
+                <th>Interface</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody id="pf-tbody">
             <tr>
-                <td colspan="7" style="padding: 2rem; text-align: center; color: #888;">No port forwarding rules configured</td>
+                <td colspan="7" style="padding: 2rem; text-align: center; color: #9ca3af;">No port forwarding rules configured</td>
             </tr>
         </tbody>
     </table>
 </div>
 
 <div class="card">
-    <h3 style="color: #00ff9d; margin-bottom: 1rem;">Common Services</h3>
+    <h3>Common Services</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <button class="btn btn-secondary" onclick="quickAdd('tcp', '80', 'HTTP')">HTTP (80)</button>
         <button class="btn btn-secondary" onclick="quickAdd('tcp', '443', 'HTTPS')">HTTPS (443)</button>

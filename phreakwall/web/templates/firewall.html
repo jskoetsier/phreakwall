@@ -2,16 +2,20 @@
 {% block title %}Firewall Rules - Phreakwall{% endblock %}
 {% block content %}
 <div class="card">
-    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🛡️ Firewall Rules Configuration</h2>
-    <p style="margin-bottom: 2rem;">Define firewall rules and policies</p>
+    <h2>🛡️ Firewall Rules Configuration</h2>
+    <p style="color: #9ca3af; margin-bottom: 2rem;">Define firewall rules and policies</p>
 
-    <h3 style="color: #00ff9d; margin-bottom: 1rem;">Firewall Rules</h3>
-    <textarea id="rules-editor" style="min-height: 300px;">{{ rules }}</textarea>
-    <button class="btn" style="margin-top: 1rem;" onclick="saveRules()">💾 Save Rules</button>
+    <h3>Firewall Rules</h3>
+    <div class="form-group">
+        <textarea id="rules-editor" style="min-height: 300px;">{{ rules }}</textarea>
+    </div>
+    <button class="btn btn-success" onclick="saveRules()">💾 Save Rules</button>
 
-    <h3 style="color: #00ff9d; margin: 2rem 0 1rem;">Zone Policies</h3>
-    <textarea id="policy-editor" style="min-height: 200px;">{{ policy }}</textarea>
-    <button class="btn" style="margin-top: 1rem;" onclick="savePolicies()">💾 Save Policies</button>
+    <h3 style="margin-top: 2rem;">Zone Policies</h3>
+    <div class="form-group">
+        <textarea id="policy-editor" style="min-height: 200px;">{{ policy }}</textarea>
+    </div>
+    <button class="btn btn-success" onclick="savePolicies()">💾 Save Policies</button>
 </div>
 
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
