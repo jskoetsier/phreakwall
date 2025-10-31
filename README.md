@@ -1,7 +1,7 @@
 # Phreakwall - Modern Python Firewall Manager
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
-[![Version](https://img.shields.io/badge/version-6.0.2-green.svg)](https://github.com/phreakwall/phreakwall)
+[![Version](https://img.shields.io/badge/version-6.0.2-green.svg)](https://github.com/jskoetsier/phreakwall)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
 ## Overview
@@ -51,7 +51,7 @@ Phreakwall 6.0 is a ground-up rewrite that modernizes the entire codebase:
 pip install phreakwall
 
 # Or install from source
-git clone https://github.com/phreakwall/phreakwall.git
+git clone https://github.com/jskoetsier/phreakwall.git
 cd phreakwall
 pip install -e .
 ```
@@ -130,7 +130,7 @@ Full documentation is available at:
 
 ```bash
 # Clone repository
-git clone https://github.com/phreakwall/phreakwall.git
+git clone https://github.com/jskoetsier/phreakwall.git
 cd phreakwall
 
 # Create virtual environment
@@ -193,8 +193,8 @@ Phreakwall: Copyright (c) 2025 Phreakwall Contributors
 ## Support
 
 - 📖 Documentation: https://docs.phreakwall.org
-- 💬 Discussions: https://github.com/phreakwall/phreakwall/discussions
-- 🐛 Bug Reports: https://github.com/phreakwall/phreakwall/issues
+- 💬 Discussions: https://github.com/jskoetsier/phreakwall/discussions
+- 🐛 Bug Reports: https://github.com/jskoetsier/phreakwall/issues
 - 📧 Mailing List: phreakwall-users@lists.phreakwall.org
 
 ## Acknowledgments
