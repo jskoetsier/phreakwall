@@ -8,26 +8,74 @@ Copyright (c) 2025 Phreakwall Contributors
 """
 
 import os
+import secrets
 from pathlib import Path
+from functools import wraps
 
-from flask import flash, Flask, jsonify, redirect, render_template, request, url_for
+from flask import flash, Flask, jsonify, redirect, render_template, request, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
 from phreakwall import __version__
 from phreakwall.core.compiler import Compiler, CompilerOptions
 from phreakwall.core.config import Config
 
 
+# Simple user store (in production, use a database)
+USERS = {
+    "admin": generate_password_hash("phreakwall123")  # Default password, should be changed
+}
+
+
+def login_required(f):
+    """Decorator to require login for routes."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "logged_in" not in session:
+            return redirect(url_for("login", next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 def create_app(config_dir="/etc/phreakwall"):
     """Create and configure the Flask application."""
     app = Flask(__name__)
-    app.secret_key = os.environ.get("SECRET_KEY", "phreakwall-dev-key-change-me")
+    app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
     app.config["CONFIG_DIR"] = Path(config_dir)
+    app.config["PERMANENT_SESSION_LIFETIME"] = 3600  # 1 hour
+
+    @app.route("/login", methods=["GET", "POST"])
+    def login():
+        """Login page."""
+        if request.method == "POST":
+            username = request.form.get("username")
+            password = request.form.get("password")
+
+            if username in USERS and check_password_hash(USERS[username], password):
+                session["logged_in"] = True
+                session["username"] = username
+                session.permanent = True
+
+                next_page = request.args.get("next")
+                return redirect(next_page if next_page else url_for("index"))
+            else:
+                flash("Invalid username or password", "error")
+
+        return render_template("login.html", version=__version__)
+
+    @app.route("/logout")
+    def logout():
+        """Logout and clear session."""
+        session.clear()
+        flash("You have been logged out successfully", "success")
+        return redirect(url_for("login"))
 
     @app.route("/")
+    @login_required
     def index():
         """Dashboard home page."""
-        return render_template("index.html", version=__version__)
+        return render_template("index.html", version=__version__, username=session.get("username"))
 
     @app.route("/config")
+    @login_required
     def config():
         """Configuration management page."""
         config_dir = app.config["CONFIG_DIR"]
@@ -44,9 +92,10 @@ def create_app(config_dir="/etc/phreakwall"):
                         }
                     )
 
-        return render_template("config.html", files=files, config_dir=config_dir)
+        return render_template("config.html", files=files, config_dir=config_dir, username=session.get("username"))
 
     @app.route("/config/edit/<filename>")
+    @login_required
     def edit_config(filename):
         """Edit a configuration file."""
         config_file = app.config["CONFIG_DIR"] / filename
@@ -56,9 +105,10 @@ def create_app(config_dir="/etc/phreakwall"):
             return redirect(url_for("config"))
 
         content = config_file.read_text()
-        return render_template("edit.html", filename=filename, content=content)
+        return render_template("edit.html", filename=filename, content=content, username=session.get("username"))
 
     @app.route("/config/save/<filename>", methods=["POST"])
+    @login_required
     def save_config(filename):
         """Save configuration file."""
         config_file = app.config["CONFIG_DIR"] / filename
@@ -73,6 +123,7 @@ def create_app(config_dir="/etc/phreakwall"):
         return redirect(url_for("config"))
 
     @app.route("/check")
+    @login_required
     def check():
         """Validate configuration."""
         options = CompilerOptions(directory=app.config["CONFIG_DIR"])
@@ -88,6 +139,7 @@ def create_app(config_dir="/etc/phreakwall"):
         return jsonify(result)
 
     @app.route("/compile", methods=["POST"])
+    @login_required
     def compile_config():
         """Compile firewall configuration."""
         output = Path("/var/lib/phreakwall/firewall.sh")
@@ -109,11 +161,13 @@ def create_app(config_dir="/etc/phreakwall"):
             return jsonify({"status": "error", "message": str(e)})
 
     @app.route("/status")
+    @login_required
     def status():
         """Show firewall status."""
-        return render_template("status.html", version=__version__)
+        return render_template("status.html", version=__version__, username=session.get("username"))
 
     @app.route("/api/status")
+    @login_required
     def api_status():
         """API endpoint for status."""
         return jsonify(
@@ -125,16 +179,19 @@ def create_app(config_dir="/etc/phreakwall"):
         )
 
     @app.route("/virtualips")
+    @login_required
     def virtualips():
         """Virtual IPs management."""
-        return render_template("virtualips.html", version=__version__)
+        return render_template("virtualips.html", version=__version__, username=session.get("username"))
 
     @app.route("/nat")
+    @login_required
     def nat():
         """1:1 NAT configuration (bidirectional)."""
-        return render_template("nat.html", version=__version__)
+        return render_template("nat.html", version=__version__, username=session.get("username"))
 
     @app.route("/firewall")
+    @login_required
     def firewall():
         """Firewall rules configuration."""
         config_dir = app.config["CONFIG_DIR"]
@@ -149,19 +206,23 @@ def create_app(config_dir="/etc/phreakwall"):
             version=__version__,
             rules=rules_content,
             policy=policy_content,
+            username=session.get("username")
         )
 
     @app.route("/portforward")
+    @login_required
     def portforward():
         """Port forwarding configuration."""
-        return render_template("portforward.html", version=__version__)
+        return render_template("portforward.html", version=__version__, username=session.get("username"))
 
     @app.route("/metrics")
+    @login_required
     def metrics():
         """System and firewall metrics."""
-        return render_template("metrics.html", version=__version__)
+        return render_template("metrics.html", version=__version__, username=session.get("username"))
 
     @app.route("/api/virtualips", methods=["GET", "POST"])
+    @login_required
     def api_virtualips():
         """API for virtual IPs."""
         if request.method == "POST":
@@ -170,6 +231,7 @@ def create_app(config_dir="/etc/phreakwall"):
         return jsonify({"virtualips": []})
 
     @app.route("/api/nat", methods=["GET", "POST"])
+    @login_required
     def api_nat():
         """API for NAT rules."""
         if request.method == "POST":
@@ -178,6 +240,7 @@ def create_app(config_dir="/etc/phreakwall"):
         return jsonify({"nat_rules": []})
 
     @app.route("/api/portforward", methods=["GET", "POST"])
+    @login_required
     def api_portforward():
         """API for port forwarding."""
         if request.method == "POST":
@@ -186,6 +249,7 @@ def create_app(config_dir="/etc/phreakwall"):
         return jsonify({"forwards": []})
 
     @app.route("/api/metrics")
+    @login_required
     def api_metrics():
         """API for metrics data."""
         import time
@@ -256,6 +320,7 @@ def main():
     app = create_app(args.directory)
     print(f"Starting Phreakwall Web Interface v{__version__}")
     print(f"Open your browser to http://{args.host}:{args.port}")
+    print(f"Default login: admin / phreakwall123")
     app.run(host=args.host, port=args.port, debug=args.debug)
 
 

@@ -1,79 +1,415 @@
-{% extends "base.html" %}
-{% block title %}Dashboard - Phreakwall{% endblock %}
-{% block content %}
-<div class="card">
-    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🔥 Phreakwall Dashboard</h2>
-    <p style="margin-bottom: 2rem;">Modern Python-based firewall management system</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Phreakwall</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div style="background: #1a1f3a; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #00ff9d;">
-            <h3 style="color: #00ff9d; margin-bottom: 0.5rem;">Version</h3>
-            <p style="font-size: 1.5rem; font-weight: bold;">{{ version }}</p>
-        </div>
-        <div style="background: #1a1f3a; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #3d4465;">
-            <h3 style="color: #00ff9d; margin-bottom: 0.5rem;">Status</h3>
-            <p><span class="status-badge status-active">Ready</span></p>
-        </div>
-        <div style="background: #1a1f3a; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ffa500;">
-            <h3 style="color: #00ff9d; margin-bottom: 0.5rem;">Language</h3>
-            <p style="font-size: 1.5rem; font-weight: bold;">Python 3.10+</p>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Arial, sans-serif;
+            background: #0a0e27;
+            color: #e5e7eb;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header .user-name {
+            color: #a5b4fc;
+            font-size: 0.9rem;
+        }
+
+        .header .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .header .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav {
+            background: #111827;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0.5rem;
+            padding: 0 2rem;
+        }
+
+        .nav a {
+            color: #9ca3af;
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            display: inline-block;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .nav a.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(30, 27, 75, 0.6) 0%, rgba(49, 46, 129, 0.4) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #f3f4f6;
+        }
+
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: rgba(34, 197, 94, 0.1);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-badge.inactive {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-dot.active {
+            background: #22c55e;
+        }
+
+        .status-dot.inactive {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-card {
+            background: rgba(30, 27, 75, 0.4);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .action-card:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .action-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #f3f4f6;
+        }
+
+        .action-card p {
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+
+        .welcome-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-section h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #f3f4f6;
+        }
+
+        .welcome-section p {
+            color: #9ca3af;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔥 Phreakwall</h1>
+        <div class="user-menu">
+            <span class="user-name">👤 {{ username }}</span>
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
         </div>
     </div>
 
-    <h3 style="color: #00ff9d; margin-top: 2rem; margin-bottom: 1rem;">Quick Actions</h3>
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <button class="btn" onclick="checkConfig()">✓ Validate Configuration</button>
-        <button class="btn btn-secondary" onclick="window.location.href='/config'">📝 Edit Configuration</button>
-        <button class="btn btn-secondary" onclick="compileConfig()">⚡ Compile Firewall</button>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="active">Dashboard</a>
+            <a href="{{ url_for('firewall') }}">Firewall Rules</a>
+            <a href="{{ url_for('nat') }}">1:1 NAT</a>
+            <a href="{{ url_for('portforward') }}">Port Forward</a>
+            <a href="{{ url_for('virtualips') }}">Virtual IPs</a>
+            <a href="{{ url_for('metrics') }}">Metrics</a>
+            <a href="{{ url_for('config') }}">Config Files</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h2>Welcome to Phreakwall</h2>
+            <p>Modern firewall management made simple. Configure, monitor, and control your network security.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🛡️</span>
+                    <div>
+                        <div class="card-title">Firewall Status</div>
+                    </div>
+                </div>
+                <div class="status-badge active">
+                    <span class="status-dot active"></span>
+                    Active & Protected
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <div>
+                        <div class="card-title">Active Rules</div>
+                    </div>
+                </div>
+                <div class="card-value">24</div>
+                <div class="card-label">Firewall rules configured</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🔀</span>
+                    <div>
+                        <div class="card-title">NAT Rules</div>
+                    </div>
+                </div>
+                <div class="card-value">8</div>
+                <div class="card-label">Port forwards & NAT</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🌐</span>
+                    <div>
+                        <div class="card-title">Version</div>
+                    </div>
+                </div>
+                <div class="card-value">{{ version }}</div>
+                <div class="card-label">Phreakwall</div>
+            </div>
+        </div>
+
+        <h2 style="margin: 2rem 0 1rem 0; font-size: 1.5rem; color: #f3f4f6;">Quick Actions</h2>
+        
+        <div class="action-grid">
+            <a href="{{ url_for('firewall') }}" class="action-card">
+                <div class="icon">🔒</div>
+                <h3>Manage Rules</h3>
+                <p>Configure firewall rules and policies</p>
+            </a>
+
+            <a href="{{ url_for('nat') }}" class="action-card">
+                <div class="icon">🔄</div>
+                <h3>1:1 NAT</h3>
+                <p>Configure bidirectional NAT rules</p>
+            </a>
+
+            <a href="{{ url_for('portforward') }}" class="action-card">
+                <div class="icon">➡️</div>
+                <h3>Port Forwarding</h3>
+                <p>Set up port forwarding rules</p>
+            </a>
+
+            <a href="{{ url_for('virtualips') }}" class="action-card">
+                <div class="icon">🌍</div>
+                <h3>Virtual IPs</h3>
+                <p>Manage virtual IP addresses</p>
+            </a>
+
+            <a href="{{ url_for('metrics') }}" class="action-card">
+                <div class="icon">📈</div>
+                <h3>View Metrics</h3>
+                <p>Monitor system performance</p>
+            </a>
+
+            <a href="{{ url_for('config') }}" class="action-card">
+                <div class="icon">⚙️</div>
+                <h3>Configuration</h3>
+                <p>Edit configuration files</p>
+            </a>
+        </div>
     </div>
-
-    <div id="result" style="margin-top: 2rem;"></div>
-</div>
-
-<div class="card">
-    <h3 style="color: #00ff9d; margin-bottom: 1rem;">📖 Documentation</h3>
-    <ul style="list-style: none; line-height: 2;">
-        <li>→ <a href="https://docs.phreakwall.org" style="color: #00ff9d;">User Guide</a></li>
-        <li>→ <a href="https://github.com/phreakwall/phreakwall" style="color: #00ff9d;">GitHub Repository</a></li>
-        <li>→ <a href="https://docs.phreakwall.org/api" style="color: #00ff9d;">API Reference</a></li>
-    </ul>
-</div>
-
-<script>
-function checkConfig() {
-    const result = document.getElementById('result');
-    result.innerHTML = '<div style="color: #888;">Checking configuration...</div>';
-
-    fetch('/check')
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                result.innerHTML = '<div class="alert alert-success">✓ ' + data.message + '</div>';
-            } else {
-                result.innerHTML = '<div class="alert alert-error">✗ ' + data.message + '</div>';
-            }
-        })
-        .catch(error => {
-            result.innerHTML = '<div class="alert alert-error">Error: ' + error + '</div>';
-        });
-}
-
-function compileConfig() {
-    const result = document.getElementById('result');
-    result.innerHTML = '<div style="color: #888;">Compiling configuration...</div>';
-
-    fetch('/compile', { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                result.innerHTML = '<div class="alert alert-success">✓ ' + data.message + '</div>';
-            } else {
-                result.innerHTML = '<div class="alert alert-error">✗ ' + data.message + '</div>';
-            }
-        })
-        .catch(error => {
-            result.innerHTML = '<div class="alert alert-error">Error: ' + error + '</div>';
-        });
-}
-</script>
-{% endblock %}
+</body>
+</html>

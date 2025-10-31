@@ -55,6 +55,7 @@ setup(
         "pyyaml>=6.0",
         "rich>=13.0.0",
         "flask>=3.0.0",
+        "flask-login>=0.6.0",
     ],
     extras_require={
         "dev": [
