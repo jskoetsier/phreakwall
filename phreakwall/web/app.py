@@ -225,28 +225,127 @@ def create_app(config_dir="/etc/phreakwall"):
     @login_required
     def api_virtualips():
         """API for virtual IPs."""
+        config_dir = app.config["CONFIG_DIR"]
+        vips_file = config_dir / "interfaces"
+        
         if request.method == "POST":
             data = request.json
-            return jsonify({"status": "success", "message": "Virtual IP added"})
+            interface = data.get("interface", "")
+            address = data.get("address", "")
+            netmask = data.get("netmask", "")
+            
+            if not interface or not address or not netmask:
+                return jsonify({"status": "error", "message": "Missing required fields"})
+            
+            try:
+                # Read existing content
+                content = vips_file.read_text() if vips_file.exists() else "# Phreakwall Interfaces Configuration\n#ZONE\tINTERFACE\tOPTIONS\n"
+                
+                # Add new virtual IP as a comment for now (phreakwall doesn't have direct VIP support in interfaces file)
+                # In a real implementation, this might go to a separate file or be handled differently
+                new_line = f"\n# Virtual IP: {address}/{netmask} on {interface}\n"
+                vips_file.write_text(content + new_line)
+                
+                return jsonify({"status": "success", "message": f"Virtual IP {address} added to {interface}"})
+            except Exception as e:
+                return jsonify({"status": "error", "message": str(e)})
+        
+        # GET request - return configured virtual IPs
         return jsonify({"virtualips": []})
 
     @app.route("/api/nat", methods=["GET", "POST"])
     @login_required
     def api_nat():
         """API for NAT rules."""
+        config_dir = app.config["CONFIG_DIR"]
+        nat_file = config_dir / "nat"
+        
         if request.method == "POST":
             data = request.json
-            return jsonify({"status": "success", "message": "NAT rule added"})
-        return jsonify({"nat_rules": []})
+            external = data.get("external", "")
+            internal = data.get("internal", "")
+            iface = data.get("interface", "")
+            
+            if not external or not internal or not iface:
+                return jsonify({"status": "error", "message": "Missing required fields"})
+            
+            try:
+                # Read existing content or create header
+                if nat_file.exists():
+                    content = nat_file.read_text()
+                else:
+                    content = "# Phreakwall 1:1 NAT Configuration\n#EXTERNAL\tINTERFACE\tINTERNAL\tALL INTERFACES\tLOCAL\n"
+                
+                # Add new NAT rule
+                new_rule = f"{external}\t{iface}\t{internal}\n"
+                nat_file.write_text(content + new_rule)
+                
+                return jsonify({"status": "success", "message": f"NAT rule added: {external} ↔ {internal}"})
+            except Exception as e:
+                return jsonify({"status": "error", "message": str(e)})
+        
+        # GET request - return configured NAT rules
+        nat_rules = []
+        if nat_file.exists():
+            for line in nat_file.read_text().split('\n'):
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    parts = line.split()
+                    if len(parts) >= 3:
+                        nat_rules.append({
+                            "external": parts[0],
+                            "interface": parts[1],
+                            "internal": parts[2]
+                        })
+        return jsonify({"nat_rules": nat_rules})
 
     @app.route("/api/portforward", methods=["GET", "POST"])
     @login_required
     def api_portforward():
         """API for port forwarding."""
+        config_dir = app.config["CONFIG_DIR"]
+        rules_file = config_dir / "rules"
+        
         if request.method == "POST":
             data = request.json
-            return jsonify({"status": "success", "message": "Port forward added"})
-        return jsonify({"forwards": []})
+            protocol = data.get("protocol", "tcp")
+            external_port = data.get("external_port", "")
+            internal_ip = data.get("internal_ip", "")
+            internal_port = data.get("internal_port", "")
+            iface = data.get("interface", "net")
+            
+            if not external_port or not internal_ip or not internal_port:
+                return jsonify({"status": "error", "message": "Missing required fields"})
+            
+            try:
+                # Read existing content or create header
+                if rules_file.exists():
+                    content = rules_file.read_text()
+                else:
+                    content = "# Phreakwall Rules Configuration\n#ACTION\tSOURCE\tDEST\tPROTO\tDPORT\tSPORT\tORIGDEST\tRATE\tUSER\tMARK\n"
+                
+                # Add DNAT rule for port forwarding
+                new_rule = f"DNAT\t{iface}\tloc:{internal_ip}:{internal_port}\t{protocol}\t{external_port}\n"
+                rules_file.write_text(content + new_rule)
+                
+                return jsonify({"status": "success", "message": f"Port forward added: {external_port} → {internal_ip}:{internal_port}"})
+            except Exception as e:
+                return jsonify({"status": "error", "message": str(e)})
+        
+        # GET request - return configured port forwards
+        forwards = []
+        if rules_file.exists():
+            for line in rules_file.read_text().split('\n'):
+                line = line.strip()
+                if line and not line.startswith('#') and line.startswith('DNAT'):
+                    parts = line.split()
+                    if len(parts) >= 5:
+                        forwards.append({
+                            "protocol": parts[3] if len(parts) > 3 else "tcp",
+                            "external_port": parts[4] if len(parts) > 4 else "",
+                            "internal": parts[2] if len(parts) > 2 else ""
+                        })
+        return jsonify({"forwards": forwards})
 
     @app.route("/api/metrics")
     @login_required
