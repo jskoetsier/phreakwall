@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Phreakwall{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🔥 Phreakwall Dashboard</h2>
+    <p style="margin-bottom: 2rem;">Modern Python-based firewall management system</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div style="background: #1a1f3a; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #00ff9d;">
+            <h3 style="color: #00ff9d; margin-bottom: 0.5rem;">Version</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">{{ version }}</p>
+        </div>
+        <div style="background: #1a1f3a; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #3d4465;">
+            <h3 style="color: #00ff9d; margin-bottom: 0.5rem;">Status</h3>
+            <p><span class="status-badge status-active">Ready</span></p>
+        </div>
+        <div style="background: #1a1f3a; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ffa500;">
+            <h3 style="color: #00ff9d; margin-bottom: 0.5rem;">Language</h3>
+            <p style="font-size: 1.5rem; font-weight: bold;">Python 3.10+</p>
+        </div>
+    </div>
+
+    <h3 style="color: #00ff9d; margin-top: 2rem; margin-bottom: 1rem;">Quick Actions</h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <button class="btn" onclick="checkConfig()">✓ Validate Configuration</button>
+        <button class="btn btn-secondary" onclick="window.location.href='/config'">📝 Edit Configuration</button>
+        <button class="btn btn-secondary" onclick="compileConfig()">⚡ Compile Firewall</button>
+    </div>
+
+    <div id="result" style="margin-top: 2rem;"></div>
+</div>
+
+<div class="card">
+    <h3 style="color: #00ff9d; margin-bottom: 1rem;">📖 Documentation</h3>
+    <ul style="list-style: none; line-height: 2;">
+        <li>→ <a href="https://docs.phreakwall.org" style="color: #00ff9d;">User Guide</a></li>
+        <li>→ <a href="https://github.com/phreakwall/phreakwall" style="color: #00ff9d;">GitHub Repository</a></li>
+        <li>→ <a href="https://docs.phreakwall.org/api" style="color: #00ff9d;">API Reference</a></li>
+    </ul>
+</div>
+
+<script>
+function checkConfig() {
+    const result = document.getElementById('result');
+    result.innerHTML = '<div style="color: #888;">Checking configuration...</div>';
+
+    fetch('/check')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                result.innerHTML = '<div class="alert alert-success">✓ ' + data.message + '</div>';
+            } else {
+                result.innerHTML = '<div class="alert alert-error">✗ ' + data.message + '</div>';
+            }
+        })
+        .catch(error => {
+            result.innerHTML = '<div class="alert alert-error">Error: ' + error + '</div>';
+        });
+}
+
+function compileConfig() {
+    const result = document.getElementById('result');
+    result.innerHTML = '<div style="color: #888;">Compiling configuration...</div>';
+
+    fetch('/compile', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                result.innerHTML = '<div class="alert alert-success">✓ ' + data.message + '</div>';
+            } else {
+                result.innerHTML = '<div class="alert alert-error">✗ ' + data.message + '</div>';
+            }
+        })
+        .catch(error => {
+            result.innerHTML = '<div class="alert alert-error">Error: ' + error + '</div>';
+        });
+}
+</script>
+{% endblock %}

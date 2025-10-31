@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Virtual IPs - Phreakwall{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🌐 Virtual IP Addresses</h2>
+    <p style="margin-bottom: 2rem;">Manage virtual IP addresses for network interfaces</p>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Add Virtual IP</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <input type="text" id="vip_interface" placeholder="Interface (e.g., eth0)" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <input type="text" id="vip_address" placeholder="IP Address" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <input type="text" id="vip_netmask" placeholder="Netmask (e.g., 255.255.255.0)" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <button class="btn" onclick="addVirtualIP()">➕ Add Virtual IP</button>
+        </div>
+    </div>
+
+    <h3 style="color: #00ff9d; margin-bottom: 1rem;">Configured Virtual IPs</h3>
+    <div id="virtualip-list">
+        <table style="width: 100%; border-collapse: collapse; color: #e0e0e0;">
+            <thead>
+                <tr style="background: #1a1f3a; border-bottom: 2px solid #00ff9d;">
+                    <th style="padding: 1rem; text-align: left;">Interface</th>
+                    <th style="padding: 1rem; text-align: left;">IP Address</th>
+                    <th style="padding: 1rem; text-align: left;">Netmask</th>
+                    <th style="padding: 1rem; text-align: left;">Status</th>
+                    <th style="padding: 1rem; text-align: left;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="vip-tbody">
+                <tr>
+                    <td colspan="5" style="padding: 2rem; text-align: center; color: #888;">No virtual IPs configured</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="result" style="margin-top: 1rem;"></div>
+
+<script>
+function addVirtualIP() {
+    const interface = document.getElementById('vip_interface').value;
+    const address = document.getElementById('vip_address').value;
+    const netmask = document.getElementById('vip_netmask').value;
+
+    if (!interface || !address || !netmask) {
+        document.getElementById('result').innerHTML = '<div class="alert alert-error">Please fill all fields</div>';
+        return;
+    }
+
+    fetch('/api/virtualips', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({interface, address, netmask})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ ' + data.message + '</div>';
+            document.getElementById('vip_interface').value = '';
+            document.getElementById('vip_address').value = '';
+            document.getElementById('vip_netmask').value = '';
+            loadVirtualIPs();
+        } else {
+            document.getElementById('result').innerHTML = '<div class="alert alert-error">✗ ' + data.message + '</div>';
+        }
+    });
+}
+
+function loadVirtualIPs() {
+    fetch('/api/virtualips')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('vip-tbody');
+            if (data.virtualips.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: #888;">No virtual IPs configured</td></tr>';
+            } else {
+                tbody.innerHTML = data.virtualips.map(vip => `
+                    <tr style="border-bottom: 1px solid #2d1b4e;">
+                        <td style="padding: 1rem;">${vip.interface}</td>
+                        <td style="padding: 1rem;">${vip.address}</td>
+                        <td style="padding: 1rem;">${vip.netmask}</td>
+                        <td style="padding: 1rem;"><span class="status-badge status-active">Active</span></td>
+                        <td style="padding: 1rem;">
+                            <button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        });
+}
+
+loadVirtualIPs();
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}1:1 NAT - Phreakwall{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🔀 1:1 NAT Configuration</h2>
+    <p style="margin-bottom: 2rem;">Configure bidirectional one-to-one Network Address Translation (internal ↔ external)</p>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Add NAT Rule</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <input type="text" id="nat_external" placeholder="External IP" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <input type="text" id="nat_internal" placeholder="Internal IP" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <input type="text" id="nat_interface" placeholder="Interface" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <button class="btn" onclick="addNATRule()">➕ Add NAT Rule</button>
+        </div>
+    </div>
+
+    <h3 style="color: #00ff9d; margin-bottom: 1rem;">NAT Rules</h3>
+    <table style="width: 100%; border-collapse: collapse; color: #e0e0e0;">
+        <thead>
+            <tr style="background: #1a1f3a; border-bottom: 2px solid #00ff9d;">
+                <th style="padding: 1rem; text-align: left;">External IP</th>
+                <th style="padding: 1rem; text-align: left;">Internal IP</th>
+                <th style="padding: 1rem; text-align: left;">Interface</th>
+                <th style="padding: 1rem; text-align: left;">Status</th>
+                <th style="padding: 1rem; text-align: left;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="nat-tbody">
+            <tr>
+                <td colspan="5" style="padding: 2rem; text-align: center; color: #888;">No NAT rules configured</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="result"></div>
+
+<script>
+function addNATRule() {
+    const external = document.getElementById('nat_external').value;
+    const internal = document.getElementById('nat_internal').value;
+    const iface = document.getElementById('nat_interface').value;
+
+    if (!external || !internal || !iface) {
+        document.getElementById('result').innerHTML = '<div class="alert alert-error">Please fill all fields</div>';
+        return;
+    }
+
+    fetch('/api/nat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({external, internal, interface: iface})
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('result').innerHTML = data.status === 'success'
+            ? '<div class="alert alert-success">✓ ' + data.message + '</div>'
+            : '<div class="alert alert-error">✗ ' + data.message + '</div>';
+        if (data.status === 'success') {
+            document.getElementById('nat_external').value = '';
+            document.getElementById('nat_internal').value = '';
+            document.getElementById('nat_interface').value = '';
+            loadNATRules();
+        }
+    });
+}
+
+function loadNATRules() {
+    fetch('/api/nat')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('nat-tbody');
+            if (data.nat_rules.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: #888;">No NAT rules configured</td></tr>';
+            }
+        });
+}
+
+loadNATRules();
+</script>
+{% endblock %}

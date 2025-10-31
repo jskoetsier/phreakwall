@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Firewall Rules - Phreakwall{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🛡️ Firewall Rules Configuration</h2>
+    <p style="margin-bottom: 2rem;">Define firewall rules and policies</p>
+
+    <h3 style="color: #00ff9d; margin-bottom: 1rem;">Firewall Rules</h3>
+    <textarea id="rules-editor" style="min-height: 300px;">{{ rules }}</textarea>
+    <button class="btn" style="margin-top: 1rem;" onclick="saveRules()">💾 Save Rules</button>
+
+    <h3 style="color: #00ff9d; margin: 2rem 0 1rem;">Zone Policies</h3>
+    <textarea id="policy-editor" style="min-height: 200px;">{{ policy }}</textarea>
+    <button class="btn" style="margin-top: 1rem;" onclick="savePolicies()">💾 Save Policies</button>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <div class="card">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Rule Syntax Help</h3>
+        <pre style="background: #1a1f3a; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #e0e0e0;">
+#ACTION    SOURCE    DEST    PROTO    DPORT
+ACCEPT     net       fw      tcp      ssh
+ACCEPT     loc       fw      tcp      80,443
+DROP       net       fw      tcp      23
+REJECT     all       all     tcp      telnet
+        </pre>
+    </div>
+
+    <div class="card">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Policy Syntax Help</h3>
+        <pre style="background: #1a1f3a; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #e0e0e0;">
+#SOURCE    DEST    POLICY      LOG
+fw         all     ACCEPT
+loc        net     ACCEPT
+net        all     DROP        info
+all        all     REJECT      info
+        </pre>
+    </div>
+</div>
+
+<div id="result" style="margin-top: 1rem;"></div>
+
+<script>
+function saveRules() {
+    const content = document.getElementById('rules-editor').value;
+
+    fetch('/config/save/rules', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'content=' + encodeURIComponent(content)
+    })
+    .then(response => {
+        if (response.ok) {
+            document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ Rules saved successfully</div>';
+        } else {
+            document.getElementById('result').innerHTML = '<div class="alert alert-error">✗ Failed to save rules</div>';
+        }
+    });
+}
+
+function savePolicies() {
+    const content = document.getElementById('policy-editor').value;
+
+    fetch('/config/save/policy', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'content=' + encodeURIComponent(content)
+    })
+    .then(response => {
+        if (response.ok) {
+            document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ Policies saved successfully</div>';
+        } else {
+            document.getElementById('result').innerHTML = '<div class="alert alert-error">✗ Failed to save policies</div>';
+        }
+    });
+}
+</script>
+{% endblock %}

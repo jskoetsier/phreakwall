@@ -1,0 +1,14 @@
+# Phreakwall Requirements
+# Python 3.10+ required
+
+# Core dependencies
+click>=8.0.0
+pyyaml>=6.0
+rich>=13.0.0
+
+# Web interface
+flask>=3.0.0
+
+# Optional: For advanced features
+# psutil>=5.9.0  # System information
+# netaddr>=0.8.0  # IP address manipulation

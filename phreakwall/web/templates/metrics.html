@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Metrics - Phreakwall{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="color: #00ff9d; margin-bottom: 1rem;">📊 System & Firewall Metrics</h2>
+    <p style="margin-bottom: 2rem;">Real-time system and network statistics</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">CPU Usage</h3>
+        <div style="font-size: 3rem; font-weight: bold; text-align: center; margin: 1rem 0;" id="cpu-percent">0%</div>
+        <div style="background: #1a1f3a; height: 10px; border-radius: 5px; overflow: hidden;">
+            <div id="cpu-bar" style="background: #00ff9d; height: 100%; width: 0%; transition: width 0.5s;"></div>
+        </div>
+        <p style="text-align: center; margin-top: 0.5rem; color: #888;"><span id="cpu-cores">0</span> cores</p>
+    </div>
+
+    <div class="card">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Memory Usage</h3>
+        <div style="font-size: 3rem; font-weight: bold; text-align: center; margin: 1rem 0;" id="mem-percent">0%</div>
+        <div style="background: #1a1f3a; height: 10px; border-radius: 5px; overflow: hidden;">
+            <div id="mem-bar" style="background: #ffa500; height: 100%; width: 0%; transition: width 0.5s;"></div>
+        </div>
+        <p style="text-align: center; margin-top: 0.5rem; color: #888;"><span id="mem-used">0</span> / <span id="mem-total">0</span></p>
+    </div>
+
+    <div class="card">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Disk Usage</h3>
+        <div style="font-size: 3rem; font-weight: bold; text-align: center; margin: 1rem 0;" id="disk-percent">0%</div>
+        <div style="background: #1a1f3a; height: 10px; border-radius: 5px; overflow: hidden;">
+            <div id="disk-bar" style="background: #ff5555; height: 100%; width: 0%; transition: width 0.5s;"></div>
+        </div>
+        <p style="text-align: center; margin-top: 0.5rem; color: #888;"><span id="disk-used">0</span> / <span id="disk-total">0</span></p>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="color: #00ff9d; margin-bottom: 1rem;">Network Traffic</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div>
+            <h4 style="color: #00ff9d; margin-bottom: 0.5rem;">📤 Transmitted</h4>
+            <p style="font-size: 2rem; font-weight: bold;"><span id="net-sent">0</span></p>
+            <p style="color: #888;"><span id="net-packets-sent">0</span> packets</p>
+        </div>
+        <div>
+            <h4 style="color: #00ff9d; margin-bottom: 0.5rem;">📥 Received</h4>
+            <p style="font-size: 2rem; font-weight: bold;"><span id="net-recv">0</span></p>
+            <p style="color: #888;"><span id="net-packets-recv">0</span> packets</p>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+    <div class="card">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Active Connections</h3>
+        <div style="font-size: 3rem; font-weight: bold; text-align: center; margin: 1rem 0;" id="connections">-</div>
+        <p style="text-align: center; color: #888;">Firewall connections</p>
+    </div>
+
+    <div class="card">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Packets Processed</h3>
+        <div style="font-size: 3rem; font-weight: bold; text-align: center; margin: 1rem 0;" id="packets">-</div>
+        <p style="text-align: center; color: #888;">Total packets</p>
+    </div>
+</div>
+
+<script>
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function updateMetrics() {
+    fetch('/api/metrics')
+        .then(response => response.json())
+        .then(data => {
+            // CPU
+            document.getElementById('cpu-percent').textContent = data.cpu.percent.toFixed(1) + '%';
+            document.getElementById('cpu-bar').style.width = data.cpu.percent + '%';
+            document.getElementById('cpu-cores').textContent = data.cpu.count;
+
+            // Memory
+            document.getElementById('mem-percent').textContent = data.memory.percent.toFixed(1) + '%';
+            document.getElementById('mem-bar').style.width = data.memory.percent + '%';
+            document.getElementById('mem-used').textContent = formatBytes(data.memory.used);
+            document.getElementById('mem-total').textContent = formatBytes(data.memory.total);
+
+            // Disk
+            document.getElementById('disk-percent').textContent = data.disk.percent.toFixed(1) + '%';
+            document.getElementById('disk-bar').style.width = data.disk.percent + '%';
+            document.getElementById('disk-used').textContent = formatBytes(data.disk.used);
+            document.getElementById('disk-total').textContent = formatBytes(data.disk.total);
+
+            // Network
+            document.getElementById('net-sent').textContent = formatBytes(data.network.bytes_sent);
+            document.getElementById('net-recv').textContent = formatBytes(data.network.bytes_recv);
+            document.getElementById('net-packets-sent').textContent = data.network.packets_sent.toLocaleString();
+            document.getElementById('net-packets-recv').textContent = data.network.packets_recv.toLocaleString();
+
+            // Update color based on usage
+            const cpuBar = document.getElementById('cpu-bar');
+            cpuBar.style.background = data.cpu.percent > 80 ? '#ff5555' : data.cpu.percent > 60 ? '#ffa500' : '#00ff9d';
+
+            const memBar = document.getElementById('mem-bar');
+            memBar.style.background = data.memory.percent > 80 ? '#ff5555' : data.memory.percent > 60 ? '#ffa500' : '#ffa500';
+
+            const diskBar = document.getElementById('disk-bar');
+            diskBar.style.background = data.disk.percent > 80 ? '#ff5555' : data.disk.percent > 60 ? '#ffa500' : '#ff5555';
+        })
+        .catch(error => {
+            console.error('Error fetching metrics:', error);
+        });
+}
+
+// Update metrics every 2 seconds
+updateMetrics();
+setInterval(updateMetrics, 2000);
+</script>
+{% endblock %}

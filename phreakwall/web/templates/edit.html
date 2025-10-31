@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ filename }} - Phreakwall{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="color: #00ff9d; margin-bottom: 1rem;">✏️ Edit: {{ filename }}</h2>
+    <form method="POST" action="/config/save/{{ filename }}">
+        <textarea name="content">{{ content }}</textarea>
+        <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+            <button type="submit" class="btn">💾 Save Changes</button>
+            <a href="/config" class="btn btn-secondary" style="text-decoration: none; display: inline-block;">← Back to Config</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Port Forward - Phreakwall{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="color: #00ff9d; margin-bottom: 1rem;">🔌 Port Forwarding Configuration</h2>
+    <p style="margin-bottom: 2rem;">Configure port forwarding rules (DNAT)</p>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Add Port Forward</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+            <input type="text" id="pf_protocol" placeholder="Protocol (tcp/udp)" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <input type="text" id="pf_external_port" placeholder="External Port" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <input type="text" id="pf_internal_ip" placeholder="Internal IP" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <input type="text" id="pf_internal_port" placeholder="Internal Port" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <input type="text" id="pf_interface" placeholder="Interface" style="padding: 0.75rem; background: #1a1f3a; border: 1px solid #2d1b4e; border-radius: 4px; color: #e0e0e0;">
+            <button class="btn" onclick="addPortForward()">➕ Add Forward</button>
+        </div>
+    </div>
+
+    <h3 style="color: #00ff9d; margin-bottom: 1rem;">Port Forwarding Rules</h3>
+    <table style="width: 100%; border-collapse: collapse; color: #e0e0e0;">
+        <thead>
+            <tr style="background: #1a1f3a; border-bottom: 2px solid #00ff9d;">
+                <th style="padding: 1rem; text-align: left;">Protocol</th>
+                <th style="padding: 1rem; text-align: left;">External Port</th>
+                <th style="padding: 1rem; text-align: left;">Internal IP</th>
+                <th style="padding: 1rem; text-align: left;">Internal Port</th>
+                <th style="padding: 1rem; text-align: left;">Interface</th>
+                <th style="padding: 1rem; text-align: left;">Status</th>
+                <th style="padding: 1rem; text-align: left;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="pf-tbody">
+            <tr>
+                <td colspan="7" style="padding: 2rem; text-align: center; color: #888;">No port forwarding rules configured</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3 style="color: #00ff9d; margin-bottom: 1rem;">Common Services</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <button class="btn btn-secondary" onclick="quickAdd('tcp', '80', 'HTTP')">HTTP (80)</button>
+        <button class="btn btn-secondary" onclick="quickAdd('tcp', '443', 'HTTPS')">HTTPS (443)</button>
+        <button class="btn btn-secondary" onclick="quickAdd('tcp', '22', 'SSH')">SSH (22)</button>
+        <button class="btn btn-secondary" onclick="quickAdd('tcp', '3389', 'RDP')">RDP (3389)</button>
+        <button class="btn btn-secondary" onclick="quickAdd('tcp', '3306', 'MySQL')">MySQL (3306)</button>
+        <button class="btn btn-secondary" onclick="quickAdd('tcp', '5432', 'PostgreSQL')">PostgreSQL (5432)</button>
+    </div>
+</div>
+
+<div id="result"></div>
+
+<script>
+function addPortForward() {
+    const protocol = document.getElementById('pf_protocol').value;
+    const external_port = document.getElementById('pf_external_port').value;
+    const internal_ip = document.getElementById('pf_internal_ip').value;
+    const internal_port = document.getElementById('pf_internal_port').value;
+    const iface = document.getElementById('pf_interface').value;
+
+    if (!protocol || !external_port || !internal_ip || !internal_port || !iface) {
+        document.getElementById('result').innerHTML = '<div class="alert alert-error">Please fill all fields</div>';
+        return;
+    }
+
+    fetch('/api/portforward', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({protocol, external_port, internal_ip, internal_port, interface: iface})
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('result').innerHTML = data.status === 'success'
+            ? '<div class="alert alert-success">✓ ' + data.message + '</div>'
+            : '<div class="alert alert-error">✗ ' + data.message + '</div>';
+        if (data.status === 'success') {
+            document.getElementById('pf_protocol').value = '';
+            document.getElementById('pf_external_port').value = '';
+            document.getElementById('pf_internal_ip').value = '';
+            document.getElementById('pf_internal_port').value = '';
+            document.getElementById('pf_interface').value = '';
+            loadPortForwards();
+        }
+    });
+}
+
+function quickAdd(protocol, port, name) {
+    document.getElementById('pf_protocol').value = protocol;
+    document.getElementById('pf_external_port').value = port;
+    document.getElementById('pf_internal_port').value = port;
+    document.getElementById('result').innerHTML = '<div class="alert" style="background: #3d4465;">Fill in Internal IP and Interface for ' + name + '</div>';
+}
+
+function loadPortForwards() {
+    fetch('/api/portforward')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('pf-tbody');
+            if (data.forwards.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="padding: 2rem; text-align: center; color: #888;">No port forwarding rules configured</td></tr>';
+            }
+        });
+}
+
+loadPortForwards();
+</script>
+{% endblock %}
