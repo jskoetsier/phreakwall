@@ -2,52 +2,245 @@
 {% block title %}Firewall Rules - Phreakwall{% endblock %}
 {% block content %}
 <div class="card">
-    <h2>🛡️ Firewall Rules Configuration</h2>
-    <p style="color: #9ca3af; margin-bottom: 2rem;">Define firewall rules and policies</p>
+    <h2>🛡️ Firewall Rules</h2>
+    <p style="color: #9ca3af; margin-bottom: 2rem;">Manage firewall rules and policies</p>
 
-    <h3>Firewall Rules</h3>
-    <div class="form-group">
-        <textarea id="rules-editor" style="min-height: 300px;">{{ rules }}</textarea>
+    <h3>Add New Rule</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>Action</label>
+            <select id="rule_action">
+                <option value="ACCEPT">ACCEPT</option>
+                <option value="DROP">DROP</option>
+                <option value="REJECT">REJECT</option>
+                <option value="DNAT">DNAT</option>
+                <option value="REDIRECT">REDIRECT</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>Source Zone</label>
+            <input type="text" id="rule_source" placeholder="e.g., net, loc, fw">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>Dest Zone</label>
+            <input type="text" id="rule_dest" placeholder="e.g., fw, net, all">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>Protocol</label>
+            <select id="rule_proto">
+                <option value="">Any</option>
+                <option value="tcp">TCP</option>
+                <option value="udp">UDP</option>
+                <option value="icmp">ICMP</option>
+                <option value="all">All</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>Dest Port</label>
+            <input type="text" id="rule_dport" placeholder="e.g., 22, 80,443">
+        </div>
+        <div style="display: flex; align-items: flex-end;">
+            <button class="btn" onclick="addRule()" style="width: 100%;">➕ Add Rule</button>
+        </div>
     </div>
-    <button class="btn btn-success" onclick="saveRules()">💾 Save Rules</button>
 
-    <h3 style="margin-top: 2rem;">Zone Policies</h3>
-    <div class="form-group">
-        <textarea id="policy-editor" style="min-height: 200px;">{{ policy }}</textarea>
-    </div>
-    <button class="btn btn-success" onclick="savePolicies()">💾 Save Policies</button>
+    <h3>Active Firewall Rules</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Protocol</th>
+                <th>Port</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="rules-tbody">
+            <tr>
+                <td colspan="6" style="padding: 2rem; text-align: center; color: #9ca3af;">Loading rules...</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+<div class="card">
+    <h3>Zone Policies</h3>
+    <p style="color: #9ca3af; margin-bottom: 1rem;">Default policies for traffic between zones</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Source Zone</th>
+                <th>Destination Zone</th>
+                <th>Policy</th>
+                <th>Log Level</th>
+            </tr>
+        </thead>
+        <tbody id="policy-tbody">
+            <tr>
+                <td colspan="4" style="padding: 2rem; text-align: center; color: #9ca3af;">Loading policies...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
     <div class="card">
-        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Rule Syntax Help</h3>
-        <pre style="background: #1a1f3a; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #e0e0e0;">
-#ACTION    SOURCE    DEST    PROTO    DPORT
-ACCEPT     net       fw      tcp      ssh
-ACCEPT     loc       fw      tcp      80,443
-DROP       net       fw      tcp      23
-REJECT     all       all     tcp      telnet
-        </pre>
+        <h3>Common Services</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <button class="btn btn-secondary" onclick="quickAddService('SSH', '22', 'tcp')">SSH (22)</button>
+            <button class="btn btn-secondary" onclick="quickAddService('HTTP', '80', 'tcp')">HTTP (80)</button>
+            <button class="btn btn-secondary" onclick="quickAddService('HTTPS', '443', 'tcp')">HTTPS (443)</button>
+            <button class="btn btn-secondary" onclick="quickAddService('DNS', '53', 'udp')">DNS (53)</button>
+            <button class="btn btn-secondary" onclick="quickAddService('SMTP', '25', 'tcp')">SMTP (25)</button>
+            <button class="btn btn-secondary" onclick="quickAddService('MySQL', '3306', 'tcp')">MySQL (3306)</button>
+        </div>
     </div>
 
     <div class="card">
-        <h3 style="color: #00ff9d; margin-bottom: 1rem;">Policy Syntax Help</h3>
-        <pre style="background: #1a1f3a; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #e0e0e0;">
-#SOURCE    DEST    POLICY      LOG
-fw         all     ACCEPT
-loc        net     ACCEPT
-net        all     DROP        info
-all        all     REJECT      info
-        </pre>
+        <h3>Rule Syntax</h3>
+        <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; overflow-x: auto; color: #d1d5db; font-size: 0.85rem; margin: 0;">
+#ACTION  SOURCE  DEST  PROTO  DPORT
+ACCEPT   net     fw    tcp    ssh
+ACCEPT   loc     net   tcp    80,443
+DROP     net     fw    tcp    23
+REJECT   all     all   -      -</pre>
     </div>
 </div>
 
 <div id="result" style="margin-top: 1rem;"></div>
 
 <script>
-function saveRules() {
-    const content = document.getElementById('rules-editor').value;
+function parseRulesFile(content) {
+    const lines = content.split('\n');
+    const rules = [];
+    
+    for (let line of lines) {
+        line = line.trim();
+        if (!line || line.startsWith('#')) continue;
+        
+        const parts = line.split(/\s+/);
+        if (parts.length >= 3) {
+            rules.push({
+                action: parts[0] || '',
+                source: parts[1] || '',
+                dest: parts[2] || '',
+                proto: parts[3] || '-',
+                dport: parts[4] || '-'
+            });
+        }
+    }
+    
+    return rules;
+}
 
+function parsePolicyFile(content) {
+    const lines = content.split('\n');
+    const policies = [];
+    
+    for (let line of lines) {
+        line = line.trim();
+        if (!line || line.startsWith('#')) continue;
+        
+        const parts = line.split(/\s+/);
+        if (parts.length >= 3) {
+            policies.push({
+                source: parts[0] || '',
+                dest: parts[1] || '',
+                policy: parts[2] || '',
+                log: parts[3] || '-'
+            });
+        }
+    }
+    
+    return policies;
+}
+
+function loadRules() {
+    const rulesContent = `{{ rules | safe }}`.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    const policyContent = `{{ policy | safe }}`.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    
+    const rules = parseRulesFile(rulesContent);
+    const policies = parsePolicyFile(policyContent);
+    
+    // Display rules
+    const rulesTbody = document.getElementById('rules-tbody');
+    if (rules.length === 0) {
+        rulesTbody.innerHTML = '<tr><td colspan="6" style="padding: 2rem; text-align: center; color: #9ca3af;">No firewall rules configured</td></tr>';
+    } else {
+        rulesTbody.innerHTML = rules.map((rule, idx) => `
+            <tr>
+                <td><span class="badge ${rule.action === 'ACCEPT' ? 'success' : rule.action === 'DROP' || rule.action === 'REJECT' ? 'error' : 'info'}">${rule.action}</span></td>
+                <td>${rule.source}</td>
+                <td>${rule.dest}</td>
+                <td>${rule.proto}</td>
+                <td>${rule.dport}</td>
+                <td>
+                    <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="deleteRule(${idx})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    // Display policies
+    const policyTbody = document.getElementById('policy-tbody');
+    if (policies.length === 0) {
+        policyTbody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: #9ca3af;">No zone policies configured</td></tr>';
+    } else {
+        policyTbody.innerHTML = policies.map(policy => `
+            <tr>
+                <td>${policy.source}</td>
+                <td>${policy.dest}</td>
+                <td><span class="badge ${policy.policy === 'ACCEPT' ? 'success' : policy.policy === 'DROP' ? 'error' : 'warning'}">${policy.policy}</span></td>
+                <td>${policy.log}</td>
+            </tr>
+        `).join('');
+    }
+}
+
+function addRule() {
+    const action = document.getElementById('rule_action').value;
+    const source = document.getElementById('rule_source').value.trim();
+    const dest = document.getElementById('rule_dest').value.trim();
+    const proto = document.getElementById('rule_proto').value || '-';
+    const dport = document.getElementById('rule_dport').value.trim() || '-';
+    
+    if (!source || !dest) {
+        document.getElementById('result').innerHTML = '<div class="alert alert-error">Please fill in source and destination zones</div>';
+        return;
+    }
+    
+    const newRule = `${action}\t${source}\t${dest}\t${proto}\t${dport}`;
+    const currentContent = `{{ rules | safe }}`.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    const updatedContent = currentContent.trim() + '\n' + newRule;
+    
+    saveRulesContent(updatedContent);
+}
+
+function deleteRule(index) {
+    const rulesContent = `{{ rules | safe }}`.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    const lines = rulesContent.split('\n');
+    const nonCommentLines = [];
+    const newLines = [];
+    let currentIndex = 0;
+    
+    for (let line of lines) {
+        if (line.trim() && !line.trim().startsWith('#')) {
+            if (currentIndex !== index) {
+                newLines.push(line);
+            }
+            currentIndex++;
+        } else {
+            newLines.push(line);
+        }
+    }
+    
+    const updatedContent = newLines.join('\n');
+    saveRulesContent(updatedContent);
+}
+
+function saveRulesContent(content) {
     fetch('/config/save/rules', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -55,28 +248,27 @@ function saveRules() {
     })
     .then(response => {
         if (response.ok) {
-            document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ Rules saved successfully</div>';
+            document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ Rules saved successfully. Reloading page...</div>';
+            setTimeout(() => location.reload(), 1500);
         } else {
             document.getElementById('result').innerHTML = '<div class="alert alert-error">✗ Failed to save rules</div>';
         }
-    });
-}
-
-function savePolicies() {
-    const content = document.getElementById('policy-editor').value;
-
-    fetch('/config/save/policy', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'content=' + encodeURIComponent(content)
     })
-    .then(response => {
-        if (response.ok) {
-            document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ Policies saved successfully</div>';
-        } else {
-            document.getElementById('result').innerHTML = '<div class="alert alert-error">✗ Failed to save policies</div>';
-        }
+    .catch(error => {
+        document.getElementById('result').innerHTML = '<div class="alert alert-error">✗ Error: ' + error.message + '</div>';
     });
 }
+
+function quickAddService(name, port, proto) {
+    document.getElementById('rule_action').value = 'ACCEPT';
+    document.getElementById('rule_source').value = 'net';
+    document.getElementById('rule_dest').value = 'fw';
+    document.getElementById('rule_proto').value = proto;
+    document.getElementById('rule_dport').value = port;
+    document.getElementById('result').innerHTML = '<div class="alert alert-info">Pre-filled ' + name + ' rule. Click "Add Rule" to save.</div>';
+}
+
+// Load rules on page load
+loadRules();
 </script>
 {% endblock %}
